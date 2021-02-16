@@ -2,15 +2,15 @@ import math
 import sys
 from io import BytesIO
 import requests
-from PIL import Image
 
 
-def open_image(ll, spn, points=[], mode='map'):
+def open_image(ll, z, points=[], mode='map'):
     # рисует карту и точку на ней
     map_api_server = "http://static-maps.yandex.ru/1.x/"
     map_params = {
         "ll": ll,
         # "spn": spn,
+        "z": z,
         "l": mode,
     }
     print(points)
@@ -18,8 +18,9 @@ def open_image(ll, spn, points=[], mode='map'):
         map_params['pt'] = '~'.join(points)
     response = requests.get(map_api_server, params=map_params)
     if response:
-        Image.open(BytesIO(
-            response.content)).show()
+        map_file = "map.png"
+        with open(self.map_file, "wb") as file:
+            file.write(response.content)
     else:
         print(response.status_code, response.reason)
 
@@ -72,7 +73,7 @@ def get_ll_span(address):
     return ll, span
 
 
-def find_businesses(place, ll, spn, locale='ru_RU'):
+def find_businesses(place, ll, z, locale='ru_RU'):
     search_api_server = "https://search-maps.yandex.ru/v1/"
 
     search_params = {
@@ -80,7 +81,7 @@ def find_businesses(place, ll, spn, locale='ru_RU'):
         "text": place,
         "lang": locale,
         "ll": ll,
-        'spn': spn,
+        'z': z,
         "type": "biz"
     }
 
@@ -95,8 +96,8 @@ def find_businesses(place, ll, spn, locale='ru_RU'):
     return features
 
 
-def find_business(place, ll, spn, locale='ru_RU'):
-    orgs = find_businesses(place, ll, spn, locale)
+def find_business(place, ll, z, locale='ru_RU'):
+    orgs = find_businesses(place, ll, z, locale)
     if orgs:
         return orgs[0]
 
@@ -116,3 +117,6 @@ def lonlat_distance(a, b):
     return distance
 
 
+
+if __main__ == main():
+    open_image('123,123', '0.005')
