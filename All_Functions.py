@@ -4,7 +4,7 @@ from io import BytesIO
 import requests
 
 
-def open_image(ll, z, points=[], mode='map'):
+def open_image(ll, z, file_name, points=[], mode='map'):
     # рисует карту и точку на ней
     map_api_server = "http://static-maps.yandex.ru/1.x/"
     map_params = {
@@ -18,8 +18,8 @@ def open_image(ll, z, points=[], mode='map'):
         map_params['pt'] = '~'.join(points)
     response = requests.get(map_api_server, params=map_params)
     if response:
-        map_file = "map.png"
-        with open(self.map_file, "wb") as file:
+        map_file = file_name
+        with open(map_file, "wb") as file:
             file.write(response.content)
     else:
         print(response.status_code, response.reason)
@@ -60,7 +60,7 @@ def get_ll_span(address):
     toponym_coordinates = toponym["Point"]["pos"]
     toponym_longitude, toponym_lattitude = toponym_coordinates.split(" ")
     ll = ','.join([toponym_longitude, toponym_lattitude])
-
+    
     envelope = toponym['boundedBy']['Envelope']
     left, bottom = map(float, envelope['lowerCorner'].split(' '))
     right, top = map(float, envelope['upperCorner'].split(' '))
@@ -101,7 +101,6 @@ def find_business(place, ll, z, locale='ru_RU'):
     if orgs:
         return orgs[0]
 
-
 def lonlat_distance(a, b):
     degree_to_meters_factor = 111 * 1000
     a_long, a_lat = a
@@ -116,6 +115,3 @@ def lonlat_distance(a, b):
     distance = math.sqrt(dx ** 2 + dy ** 2)
 
     return distance
-
-if __main__ == main():
-    open_image('123,123', '0.005')

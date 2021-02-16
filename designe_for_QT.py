@@ -1,5 +1,5 @@
 import sys
-import All_Functions
+from All_Functions import *
 from PyQt5 import uic  # Импортируем uic
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import Qt
@@ -9,6 +9,9 @@ from PyQt5.QtGui import QPixmap
 class MyWidget(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.png_map = 'image.jpeg'
+        self.z = 15
+        self.ll = '92.888506,56.009354'
         uic.loadUi('main_design_Ui.ui', self)  # Загружаем дизайн
         self.initUi()
 
@@ -19,28 +22,38 @@ class MyWidget(QMainWindow):
         self.right_btn.clicked.connect(self.right)
         self.minus_btn.clicked.connect(self.zoom_out)
         self.plus_btn.clicked.connect(self.zoom_in)
-        pixmap = QPixmap('image.jpeg')
-        image.setPixmap(pixmap)
+        self.show_map()
+
+
+    def show_map(self):
+        open_image(self.ll, str(self.z), self.png_map)
+        pixmap = QPixmap(self.png_map)
+        self.label.setPixmap(pixmap)
 
     def up(self):
-        All_Functions.up()
+        pass
 
     def down(self):
-        All_Functions.down()
+        pass
 
     def left(self):
-        All_Functions.left()
+        pass
 
     def right(self):
-        All_Functions.right()
-
-    def zoom_in(self):
-        All_Functions.zoom_in(self.z)
-        self.z += 1
+        pass
 
     def zoom_out(self):
-        All_Functions.zoom_out(self.z)
+        if self.z - 1 < 0:
+            return None
         self.z -= 1
+        self.show_map()
+
+
+    def zoom_in(self):
+        if self.z + 1 > 17:
+            return None
+        self.z += 1
+        self.show_map()
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Up:
