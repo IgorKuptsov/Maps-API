@@ -30,29 +30,25 @@ class MyWidget(QMainWindow):
         pixmap = QPixmap(self.png_map)
         self.label.setPixmap(pixmap)
 
-    def up(self):
-        pass
+    def movement(self):
+        if self.sender() == self.up_btn or event.key() == Qt.Key_Up:
+            pass
+        elif self.sender() == self.down_btn or event.key() == Qt.Key_Down:
+            pass
+        elif self.sender() == self.right_btn or event.key() == Qt.Key_Left:
+            pass
+        elif self.sender() == self.left_btn or event.key() == Qt.Key_Right:
+            pass
 
-    def down(self):
-        pass
-
-    def left(self):
-        pass
-
-    def right(self):
-        pass
-
-    def zoom_out(self):
-        if self.z - 1 < 0:
-            return None
-        self.z -= 1
-        self.show_map()
-
-
-    def zoom_in(self):
-        if self.z + 1 > 17:
-            return None
-        self.z += 1
+    def zoom(self):
+        if self.sender() == self.minus_btn or event.key() == Qt.Key_PageDown:
+            if self.z - 1 < 0:
+                return None
+            self.z -= 1
+        else:
+            if self.z + 1 > 17:
+                return None
+            self.z += 1
         self.show_map()
 
     def keyPressEvent(self, event):
@@ -65,9 +61,11 @@ class MyWidget(QMainWindow):
         elif event.key() == Qt.Key_Right:
             self.right()
         elif event.key() == Qt.Key_PageUp:
-            self.zoom_in()
+            self.zoom()
         elif event.key() == Qt.Key_PageDown:
-            self.zoom_out()
+            self.zoom()
+        elif event.key() == Qt.Key_Escape:
+            sys.exit()
 
 
 if __name__ == '__main__':
