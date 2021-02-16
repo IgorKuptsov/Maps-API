@@ -1,14 +1,15 @@
 from All_Functions import open_image
 
 
-# если нажаты pgup и pgdown
-def zoom_out(z):
-    if z - 1 < 0:
+def zoom_out(self):
+    if self.z - 1 < 0:
         return None
-    open_image()
+    self.z -= 1
+    open_image(self.ll, self.z)
 
 
-def zoom_in(z):
-    if z + 1 > 17:
+def zoom_in(self):
+    if self.z + 1 > 17:
         return None
-    open_image()
+    self.z += 1
+    open_image(self.ll, self.z)
