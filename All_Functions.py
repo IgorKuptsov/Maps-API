@@ -60,7 +60,7 @@ def get_ll_span(address):
     toponym_coordinates = toponym["Point"]["pos"]
     toponym_longitude, toponym_lattitude = toponym_coordinates.split(" ")
     ll = ','.join([toponym_longitude, toponym_lattitude])
-    
+
     envelope = toponym['boundedBy']['Envelope']
     left, bottom = map(float, envelope['lowerCorner'].split(' '))
     right, top = map(float, envelope['upperCorner'].split(' '))
@@ -101,6 +101,7 @@ def find_business(place, ll, z, locale='ru_RU'):
     if orgs:
         return orgs[0]
 
+
 def lonlat_distance(a, b):
     degree_to_meters_factor = 111 * 1000
     a_long, a_lat = a
@@ -115,8 +116,6 @@ def lonlat_distance(a, b):
     distance = math.sqrt(dx ** 2 + dy ** 2)
 
     return distance
-
-
 
 if __main__ == main():
     open_image('123,123', '0.005')
