@@ -15,6 +15,7 @@ class MyWidget(QMainWindow):
         self.coeff = 2
         # сначала долгота, потом широта
         self.ll = [92.888506,56.009354]
+        self.type_of_map = 'sat'
         uic.loadUi('main_design_Ui.ui', self)  # Загружаем дизайн
         self.initUi()
 
@@ -25,11 +26,26 @@ class MyWidget(QMainWindow):
         self.right_btn.clicked.connect(self.movement)
         self.minus_btn.clicked.connect(lambda x: self.zoom(-1))
         self.plus_btn.clicked.connect(lambda x: self.zoom(1))
+        self.hybrid.clicked.connect(lambda x: self.changing_type_of_map('skl'))
+        self.scheme.clicked.connect(lambda x: self.changing_type_of_map('map'))
+        self.sputnik.clicked.connect(lambda x: self.changing_type_of_map('sat'))
+        self.find_address.clicked.connect(self.get_ll)
         self.show_map()
 
+    def changing_type_of_map(self, type):
+        self.type_of_map = type
+        self.show_map()
+
+    def get_ll(self):
+        ll, spn = get_ll_span(self.address.text())
+        if ll is None:
+            return 0
+        self.ll = list(map(float, ll.split(',')))
+        self.spn = max(list(map(float, spn.split(','))))
+        self.show_map()
 
     def show_map(self):
-        open_image( f'{self.ll[0]},{self.ll[1]}', f'{self.spn},{self.spn}', self.png_map)
+        open_image( f'{self.ll[0]},{self.ll[1]}', f'{self.spn},{self.spn}', self.png_map, mode=self.type_of_map)
         pixmap = QPixmap(self.png_map)
         self.label.setPixmap(pixmap)
 
