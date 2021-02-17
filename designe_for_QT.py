@@ -13,6 +13,7 @@ class MyWidget(QMainWindow):
         # верхний порог 90
         self.spn = 0.0005
         self.coeff = 2
+        self.color = 'pm2blm'
         # сначала долгота, потом широта
         self.ll = [92.888506,56.009354]
         self.type_of_map = 'sat'
@@ -45,7 +46,7 @@ class MyWidget(QMainWindow):
         self.show_map()
 
     def show_map(self):
-        open_image( f'{self.ll[0]},{self.ll[1]}', f'{self.spn},{self.spn}', self.png_map, mode=self.type_of_map)
+        open_image( f'{self.ll[0]},{self.ll[1]}', f'{self.spn},{self.spn}', self.png_map, mode=self.type_of_map, points=[f'{self.ll[0]},{self.ll[1]},{self.color}'])
         pixmap = QPixmap(self.png_map)
         self.label.setPixmap(pixmap)
 
