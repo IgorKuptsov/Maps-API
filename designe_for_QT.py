@@ -10,23 +10,26 @@ class MyWidget(QMainWindow):
     def __init__(self):
         super().__init__()
         self.png_map = 'image.jpeg'
-        self.z = 15
-        self.ll = '92.888506,56.009354'
+        # верхний порог 90
+        self.spn = 0.0005
+        self.coeff = 2
+        # сначала долгота, потом широта
+        self.ll = [92.888506,56.009354]
         uic.loadUi('main_design_Ui.ui', self)  # Загружаем дизайн
         self.initUi()
 
     def initUi(self):
-        self.up_btn.clicked.connect(self.up)
-        self.down_btn.clicked.connect(self.down)
-        self.left_btn.clicked.connect(self.left)
-        self.right_btn.clicked.connect(self.right)
-        self.minus_btn.clicked.connect(self.zoom_out)
-        self.plus_btn.clicked.connect(self.zoom_in)
+        self.up_btn.clicked.connect(self.movement)
+        self.down_btn.clicked.connect(self.movement)
+        self.left_btn.clicked.connect(self.movement)
+        self.right_btn.clicked.connect(self.movement)
+        self.minus_btn.clicked.connect(lambda x: self.zoom(-1))
+        self.plus_btn.clicked.connect(lambda x: self.zoom(1))
         self.show_map()
 
 
     def show_map(self):
-        open_image(self.ll, str(self.z), self.png_map)
+        open_image( f'{self.ll[0]},{self.ll[1]}', f'{self.spn},{self.spn}', self.png_map)
         pixmap = QPixmap(self.png_map)
         self.label.setPixmap(pixmap)
 
@@ -40,30 +43,26 @@ class MyWidget(QMainWindow):
         elif self.sender() == self.left_btn or event.key() == Qt.Key_Right:
             pass
 
-    def zoom(self):
-        if self.sender() == self.minus_btn or event.key() == Qt.Key_PageDown:
-            if self.z - 1 < 0:
-                return None
-            self.z -= 1
+    def zoom(self, x):
+        if x == -1:
+            self.spn = self.spn * self.coeff
         else:
-            if self.z + 1 > 17:
-                return None
-            self.z += 1
+            self.spn = self.spn / self.coeff
         self.show_map()
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Up:
-            self.up()
+            self.movement()
         elif event.key() == Qt.Key_Down:
-            self.down()
+            self.movement()
         elif event.key() == Qt.Key_Left:
-            self.left()
+            self.movement()
         elif event.key() == Qt.Key_Right:
-            self.right()
+            self.movement()
         elif event.key() == Qt.Key_PageUp:
-            self.zoom()
+            self.zoom(1)
         elif event.key() == Qt.Key_PageDown:
-            self.zoom()
+            self.zoom(-1)
         elif event.key() == Qt.Key_Escape:
             sys.exit()
 

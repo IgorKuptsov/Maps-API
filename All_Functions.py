@@ -4,13 +4,12 @@ from io import BytesIO
 import requests
 
 
-def open_image(ll, z, file_name, points=[], mode='map'):
+def open_image(ll, spn, file_name, points=[], mode='map'):
     # рисует карту и точку на ней
     map_api_server = "http://static-maps.yandex.ru/1.x/"
     map_params = {
         "ll": ll,
-        # "spn": spn,
-        "z": z,
+        "spn": spn,
         "l": mode,
     }
     print(points)
@@ -73,7 +72,7 @@ def get_ll_span(address):
     return ll, span
 
 
-def find_businesses(place, ll, z, locale='ru_RU'):
+def find_businesses(place, ll, spn, locale='ru_RU'):
     search_api_server = "https://search-maps.yandex.ru/v1/"
 
     search_params = {
@@ -81,7 +80,7 @@ def find_businesses(place, ll, z, locale='ru_RU'):
         "text": place,
         "lang": locale,
         "ll": ll,
-        'z': z,
+        'spn': z,
         "type": "biz"
     }
 
@@ -96,8 +95,8 @@ def find_businesses(place, ll, z, locale='ru_RU'):
     return features
 
 
-def find_business(place, ll, z, locale='ru_RU'):
-    orgs = find_businesses(place, ll, z, locale)
+def find_business(place, ll, spn, locale='ru_RU'):
+    orgs = find_businesses(place, ll, spn, locale)
     if orgs:
         return orgs[0]
 
