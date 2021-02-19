@@ -4,6 +4,7 @@ from PyQt5 import uic  # Импортируем uic
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
+import pprint
 
 
 class MyWidget(QMainWindow):
@@ -18,8 +19,7 @@ class MyWidget(QMainWindow):
         self.color = 'pm2blm'
         # сначала долгота, потом широта
         self.ll = list(self.DEF_LL)
-        self.obj_ll = list(self.DEF_LL).copy()
-        self.keep_ll = False
+        self.points = []
         self.type_of_map = 'sat'
         uic.loadUi('main_design_Ui.ui', self)  # Загружаем дизайн
         self.initUi()
@@ -32,6 +32,7 @@ class MyWidget(QMainWindow):
 
         self.minus_btn.clicked.connect(lambda x: self.zoom(-1))
         self.plus_btn.clicked.connect(lambda x: self.zoom(1))
+        self.reset_btn.clicked.connect(self.reset)
 
         self.hybrid.clicked.connect(lambda x: self.changing_type_of_map('skl'))
         self.scheme.clicked.connect(lambda x: self.changing_type_of_map('map'))
@@ -41,30 +42,44 @@ class MyWidget(QMainWindow):
 
         self.show_map()
 
+    def reset(self):
+        self.points = []
+        self.statusbar.showMessage('')
+        self.show_map()
+
     def changing_type_of_map(self, type):
         self.type_of_map = type
         self.show_map()
 
     def get_ll(self):
-        ll, spn = get_ll_span(self.address.text())
+        ll, spn, toponym = get_ll_span(self.address.text())
         if ll is None:
-            print('Адрес не найден')
+            self.statusbar.showMessage('Адрес не найден')
             return 0
+
+        # показываем карту
         self.ll = list(map(float, ll.split(',')))
         self.spn = max(list(map(float, spn.split(','))))
-        self.obj_ll = self.ll
+        self.points = [f'{self.ll[0]},{self.ll[1]},{self.color}']
         self.show_map()
 
+        # выводим адресс
+        # pprint.pprint(toponym)
+        try:
+            self.statusbar.showMessage(toponym['description'])
+        except Exception:
+            self.statusbar.showMessage(f'{self.ll[1]}широты,{self.ll[0]}долготы')
+
     def show_map(self):
+
         open_image(f'{self.ll[0]},{self.ll[1]}', f'{self.spn},{self.spn}', self.png_map, mode=self.type_of_map,
-                   points=[f'{self.ll[0]},{self.ll[1]},{self.color}'] if not self.keep_ll else [f'{self.obj_ll[0]},{self.obj_ll[1]},{self.color}'])
+                   points=self.points)
         pixmap = QPixmap(self.png_map)
         self.label.setPixmap(pixmap)
         # print(self.ll, self.obj_ll, sep='\n')
         # print('showing', self.ll)
 
     def movement(self, dir):
-        self.keep_ll = True
         # 0 элемент - вправо, влево
         # 1 элемент - вверх, вниз
         # print('before', self.ll)
@@ -82,7 +97,6 @@ class MyWidget(QMainWindow):
         self.show_map()
 
     def find(self):
-        self.keep_ll = False
         # self.obj_ll =
         pass
 
