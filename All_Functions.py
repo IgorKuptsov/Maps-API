@@ -68,8 +68,9 @@ def get_ll_span(address):
     dy = abs(bottom - top) / 2
 
     span = f'{dx},{dy}'
+    address = toponym['metaDataProperty']['GeocoderMetaData']['Address']
 
-    return ll, span, toponym
+    return ll, span, address
 
 
 def find_businesses(place, ll, spn, locale='ru_RU'):

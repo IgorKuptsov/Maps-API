@@ -52,7 +52,7 @@ class MyWidget(QMainWindow):
         self.show_map()
 
     def get_ll(self):
-        ll, spn, toponym = get_ll_span(self.address.text())
+        ll, spn, address = get_ll_span(self.address.text())
         if ll is None:
             self.statusbar.showMessage('Адрес не найден')
             return 0
@@ -66,7 +66,7 @@ class MyWidget(QMainWindow):
         # выводим адресс
         # pprint.pprint(toponym)
         try:
-            self.statusbar.showMessage(toponym['description'])
+            self.statusbar.showMessage(address['formatted'])
         except Exception:
             self.statusbar.showMessage(f'{self.ll[1]}широты,{self.ll[0]}долготы')
 
