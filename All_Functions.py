@@ -12,7 +12,7 @@ def open_image(ll, spn, file_name, points=[], mode='map'):
         "spn": spn,
         "l": mode,
     }
-    print(points)
+    # print(points)
     if points:
         map_params['pt'] = '~'.join(points)
     response = requests.get(map_api_server, params=map_params)
@@ -59,7 +59,7 @@ def get_ll_span(address):
     toponym_coordinates = toponym["Point"]["pos"]
     toponym_longitude, toponym_lattitude = toponym_coordinates.split(" ")
     ll = ','.join([toponym_longitude, toponym_lattitude])
-    
+
     envelope = toponym['boundedBy']['Envelope']
     left, bottom = map(float, envelope['lowerCorner'].split(' '))
     right, top = map(float, envelope['upperCorner'].split(' '))
@@ -99,6 +99,7 @@ def find_business(place, ll, spn, locale='ru_RU'):
     orgs = find_businesses(place, ll, spn, locale)
     if orgs:
         return orgs[0]
+
 
 def lonlat_distance(a, b):
     degree_to_meters_factor = 111 * 1000
