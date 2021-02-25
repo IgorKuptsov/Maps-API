@@ -24,8 +24,9 @@ class MyWidget(QMainWindow):
         self.ll = list(self.DEF_LL)
         self.points = []
         self.type_of_map = 'sat'
-        self.image = (10, 10, 600, 600)
+        self.image = (50, 10, 450, 450)
         self.img_centre = (self.image[0] + self.image[2]) // 2, (self.image[1] + self.image[3]) // 2
+        # print(self.img_centre)
         uic.loadUi('main_design_Ui.ui', self)  # Загружаем дизайн
         self.initUi()
 
@@ -103,7 +104,11 @@ class MyWidget(QMainWindow):
         open_image(f'{self.ll[0]},{self.ll[1]}', f'{self.spn},{self.spn}', self.png_map, mode=self.type_of_map,
                    points=self.points)
         pixmap = QPixmap(self.png_map)
+        # print('size', pixmap.size())
+        # print('xy', self.label.x(), self.label.y())
+        # print('-' * 10)
         self.label.setPixmap(pixmap)
+
         # print(self.ll, self.obj_ll, sep='\n')
         # print('showing', self.ll)
         self.finish_progress_bar()
@@ -111,11 +116,11 @@ class MyWidget(QMainWindow):
     def movement(self, dir):
         # 0 элемент - вправо, влево
         # 1 элемент - вверх, вниз
-        print(longtitude_offset(self.ll, self.spn * 2))
-        # self.ll[0] += dir[0] * self.spn * 2
-        # self.ll[1] += dir[1] * self.spn * 2
-        self.ll = longtitude_offset(self.ll, self.spn * 2)
-        print(self.ll)
+        # print(longtitude_offset(self.ll, self.spn * 2))
+        self.ll[0] += dir[0] * self.spn * 2
+        self.ll[1] += dir[1] * self.spn * 2
+        # self.ll = longtitude_offset(self.ll, self.spn * 2)
+        # print(self.ll)
         self.show_map()
 
     def zoom(self, x):
@@ -127,9 +132,27 @@ class MyWidget(QMainWindow):
         self.show_map()
 
     def longlat_by_mousepos(self, x, y):
-        degrees_per_pixel = self.spn / self.image[2]
-        ll_offset = [(x - self.img_centre[0]) * degrees_per_pixel, -(y - self.img_centre[1]) * degrees_per_pixel]
-        print(ll_offset)
+        degrees_per_pixel_x = (self.spn / self.image[2])
+        degrees_per_pixel_y = (self.spn / self.image[3])
+        # print('*' * 10)
+        # print(degrees_per_pixel_x, degrees_per_pixel_y)
+        # print(degrees_per_pixel)
+        # print('mxmy', x, y)
+        # print('m_x, m_y', x, y)
+        # print('old')
+        # print('x', (x - self.img_centre[0]))
+        # print('y', -(y - self.img_centre[1]))
+        # print('new')
+        # print('x', x - self.image[0] - self.img_centre[0])
+        # print('y', y - self.image[1] - self.img_centre[1])
+        new_x, new_y = x - self.image[0] - self.img_centre[0], -(y - self.image[1] - self.img_centre[1])
+        ll_offset = [new_x * degrees_per_pixel_x, new_y * degrees_per_pixel_y]
+        # ll_offset[0] = 0
+        # print(ll_offset)
+        # print('spn', self.spn)
+        #
+        # print('*' * 10)
+        # print(ll_offset)
         # ll_offset = longtitude_offset(self.ll, ll_offset[0])
         ##########
         # a_lat = self.ll[1]
@@ -154,33 +177,49 @@ class MyWidget(QMainWindow):
         # 92.888549, 56.009220
         # 92.885234, 56.009190
         #
-        return longtitude_offset(self.ll, ll_offset[0])
+        return self.ll[0] + ll_offset[0], self.ll[1] + ll_offset[1]
         # return self.ll[0] + ll_offset[0], self.ll[1] + ll_offset[1]
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        left = event.button() == Qt.LeftButton
+        right = event.button() == Qt.RightButton
+        if left or right:
             x, y = event.x(), event.y()
-            # print('first', x, y)
-            if x in range(self.image[0], self.image[2] + self.image[0]) and y in range(self.image[1],
-                                                                                       self.image[3] + self.image[1]):
-                # image_x = x - self.image[0]
-                # image_y = y - self.image[1]
-                ### delete
-                # x = 10
-                # y = 305
-                ###
-                # print('second', image_x, image_y)
-                click_ll = self.longlat_by_mousepos(x, y)
-                # print('click_ll:', click_ll)
-                # print('self.ll:', self.ll)
-                # print('-' * 25)
-                self.points = [f'{click_ll[0]},{click_ll[1]},{self.color}', f'{self.ll[0]},{self.ll[1]},{self.color2}']
-                self.show_map()
-        elif event.button() == Qt.RightButton():
-            x, y = event.x(), event.y()
+            print('fasfasd', self.image[2] + self.image[0])
             if self.image[0] <= x <= self.image[2] + self.image[0] and self.image[1] <= y <= self.image[3] + self.image[
                 1]:
                 ll = self.longlat_by_mousepos(x, y)
+                if left:
+                    self.points = [f'{ll[0]},{ll[1]},{self.color}',
+                                   f'{self.ll[0]},{self.ll[1]},{self.color2}']
+                    # address = geocode(ll)
+                    # print(address)
+                    # self.statusbar.showMessage(address['formatted'])
+                    self.show_map()
+                elif right:
+                    pass
+        # if event.button() == Qt.LeftButton:
+        #     x, y = event.x(), event.y()
+        #     # print('first', x, y)
+        #     if x in range(self.image[0], self.image[2] + self.image[0]) and y in range(self.image[1],
+        #                                                                                self.image[3] + self.image[1]):
+        #         # image_x = x - self.image[0]
+        #         # image_y = y - self.image[1]
+        #         ### delete
+        #         # x = 10
+        #         # y = 305
+        #         ###
+        #         # print('second', image_x, image_y)
+        #         click_ll = self.longlat_by_mousepos(x, y)
+        #         # print('click_ll:', click_ll)
+        #         # print('self.ll:', self.ll)
+        #         # print('-' * 25)
+        #         self.points = [f'{click_ll[0]},{click_ll[1]},{self.color}', f'{self.ll[0]},{self.ll[1]},{self.color2}']
+        #         self.show_map()
+        # elif event.button() == Qt.RightButton():
+        #     x, y = event.x(), event.y()
+        #     if self.image[0] <= x <= self.image[2] + self.image[0] and self.image[1] <= y <= self.image[3] + self.image[1]:
+        #         ll = self.longlat_by_mousepos(x, y)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Up:

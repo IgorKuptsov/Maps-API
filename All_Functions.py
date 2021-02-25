@@ -11,6 +11,7 @@ def open_image(ll, spn, file_name, points=[], mode='map'):
         "ll": ll,
         "spn": spn,
         "l": mode,
+        "size": '450,450'
     }
     # print(points)
     if points:
@@ -81,7 +82,7 @@ def find_businesses(place, ll, spn, locale='ru_RU'):
         "text": place,
         "lang": locale,
         "ll": ll,
-        'spn': z,
+        'spn': spn,
         "type": "biz"
     }
 
@@ -129,9 +130,11 @@ def longtitude_offset(a, offset):
     return b_long, a_lat
 
 
-a = 92.888549, 56.009220
-b = 92.885234, 56.009220
+# a = 92.888549, 56.009220
+# b = 92.885234, 56.009220
 # print(lonlat_distance(a, b))
 # print(longtitude_offset(a, 0.001 / 600 * 50))
 # 61.668793, 50.836497
 # 62.027216, 129.732178
+
+
