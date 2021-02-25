@@ -12,7 +12,7 @@ def open_image(ll, spn, file_name, points=[], mode='map'):
         "spn": spn,
         "l": mode,
     }
-    print(points)
+    # print(points)
     if points:
         map_params['pt'] = '~'.join(points)
     response = requests.get(map_api_server, params=map_params)
@@ -59,7 +59,7 @@ def get_ll_span(address):
     toponym_coordinates = toponym["Point"]["pos"]
     toponym_longitude, toponym_lattitude = toponym_coordinates.split(" ")
     ll = ','.join([toponym_longitude, toponym_lattitude])
-    
+
     envelope = toponym['boundedBy']['Envelope']
     left, bottom = map(float, envelope['lowerCorner'].split(' '))
     right, top = map(float, envelope['upperCorner'].split(' '))
@@ -101,6 +101,7 @@ def find_business(place, ll, spn, locale='ru_RU'):
     if orgs:
         return orgs[0]
 
+
 def lonlat_distance(a, b):
     degree_to_meters_factor = 111 * 1000
     a_long, a_lat = a
@@ -114,4 +115,23 @@ def lonlat_distance(a, b):
 
     distance = math.sqrt(dx ** 2 + dy ** 2)
 
-    return distance
+    return distance  # , dx, dy
+
+
+def longtitude_offset(a, offset):
+    a_long, a_lat = a
+    degree_to_meters_factor = 111 * 1000
+    dx = degree_to_meters_factor * offset
+    ####
+    radiance_lattitude = math.radians(a_lat)
+    lat_lon_factor = math.cos(radiance_lattitude)
+    b_long = -(dx / degree_to_meters_factor / lat_lon_factor) + a_long
+    return b_long, a_lat
+
+
+a = 92.888549, 56.009220
+b = 92.885234, 56.009220
+# print(lonlat_distance(a, b))
+# print(longtitude_offset(a, 0.001 / 600 * 50))
+# 61.668793, 50.836497
+# 62.027216, 129.732178
