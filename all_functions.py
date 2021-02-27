@@ -75,9 +75,6 @@ def get_ll_span(address):
 
 
 def find_businesses(place, ll, spn, locale='ru_RU', type='biz'):
-    # print(500)
-    # print(place)
-    # print(600)
     search_api_server = "https://search-maps.yandex.ru/v1/"
 
     search_params = {
@@ -90,15 +87,12 @@ def find_businesses(place, ll, spn, locale='ru_RU', type='biz'):
     }
     response = requests.get(search_api_server, params=search_params)
 
-    # print(response.status_code, response.reason)
     if not response:
         raise RuntimeError(f'Ошибка выполнения запроса:\n' \
                            f'{response.url}\n' \
                            f'Статус: {response.status_code} {response.reason}')
     data = response.json()
-    # print(data)
     features = data["features"]
-    # print(features)
     return features
 
 
@@ -121,18 +115,8 @@ def lonlat_distance(a, b):
 
     distance = math.sqrt(dx ** 2 + dy ** 2)
 
-    return distance  # , dx, dy
+    return distance
 
-
-# def longtitude_offset(a, offset):
-#     a_long, a_lat = a
-#     degree_to_meters_factor = 111 * 1000
-#     dx = degree_to_meters_factor * offset
-#     ####
-#     radiance_lattitude = math.radians(a_lat)
-#     lat_lon_factor = math.cos(radiance_lattitude)
-#     b_long = -(dx / degree_to_meters_factor / lat_lon_factor) + a_long
-#     return b_long, a_lat
 
 def in_50_metres_range(ll, businesses):
     for business in businesses:
@@ -141,15 +125,3 @@ def in_50_metres_range(ll, businesses):
             closest = business
             return closest['properties']['name'], business_ll
     return None
-
-
-
-
-# a = 92.888549, 56.009220
-# b = 92.885234, 56.009220
-# print(lonlat_distance(a, b))
-# print(longtitude_offset(a, 0.001 / 600 * 50))
-# 61.668793, 50.836497
-# 62.027216, 129.732178
-# print(find_businesses('стрижка', '92.888549,56.00922', '0.0015,0.0015'))
-# print(find_business('Тверской район, Центральный административный округ, Москва, Россия', '37.617734,55.751999', '0.015,0.015', type='geo'))

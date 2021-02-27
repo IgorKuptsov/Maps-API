@@ -1,12 +1,8 @@
-import sys
 from all_functions import *
 from PyQt5 import uic  # Импортируем uic
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import Qt
-from PyQt5 import QtCore
 from PyQt5.QtGui import QPixmap
-import time
-import pprint
 
 
 class MyWidget(QMainWindow):
@@ -78,19 +74,18 @@ class MyWidget(QMainWindow):
         self.points = [f'{self.ll[0]},{self.ll[1]},{self.color}']
         self.show_map(start=False)
 
-        # выводим адресс
+        # выводим адрес
         try:
-            if self.index_chb.isChecked():
-                print(address)
-                try:
-                    index = address['postal_code']
-                    self.statusbar.showMessage(address['formatted'] + index)
-                except Exception:
-                    self.statusbar.showMessage(address['formatted'])
-            else:
-                self.statusbar.showMessage(address['formatted'])
+            message = address['formatted']
         except Exception:
-            self.statusbar.showMessage(f'{self.ll[1]}широты,{self.ll[0]}долготы')
+            message = f'Данный адрес не найден, {self.ll[1]}широта,{self.ll[0]}долгота'
+        if self.index_chb.isChecked():
+            try:
+                index = address['postal_code']
+                message += f', индеск {index}'
+            except Exception:
+                message += ', индекс не найден'
+        self.statusBar().showMessage(message)
 
     def show_map(self, start=True):
         if start:
@@ -123,14 +118,14 @@ class MyWidget(QMainWindow):
         return self.ll[0] + ll_offset[0], self.ll[1] + ll_offset[1]
 
     def mousePressEvent(self, event):
-        self.start_progress_bar()
         left = event.button() == Qt.LeftButton
         right = event.button() == Qt.RightButton
         if left or right:
-            self.reset()
             x, y = event.x(), event.y()
             if self.image[0] <= x <= self.image[2] + self.image[0] and self.image[1] <= y <= self.image[3] + self.image[
                 1]:
+                self.start_progress_bar()
+                self.reset()
                 ll = self.longlat_by_mousepos(x, y)
                 address = geocode(f'{ll[0]},{ll[1]}')
                 if left:
@@ -138,7 +133,7 @@ class MyWidget(QMainWindow):
                     if address:
                         address = address['metaDataProperty']['GeocoderMetaData']['Address']['formatted']
                     else:
-                        address = 'Адрес не найден'
+                        address = 'Адрес объекта не найден'
                     self.statusbar.showMessage(address)
                 elif right:
                     if address:
