@@ -7,13 +7,23 @@ from PyQt5.QtGui import QPixmap
 
 class MyWidget(QMainWindow):
     DEF_LL = (92.888506, 56.009354)
+    LAT_STEP = 0.008  # Шаги при движении карты по широте и долготе
+    LON_STEP = 0.02
+    COORD_TO_GEO_X = 0.0000428  # Пропорции пиксельных и географических координат.
+    COORD_TO_GEO_Y = 0.0000428
+    Z_MAX = 17
+    Z_MIN = 2
+    # spn = 50(метров) / degree_to_meters_factor
+    # degree_to_meters_factor = 111 * 1000
+    BUSINESS_SEARCH_SPN = '0.00045,0.00045'
 
     def __init__(self):
         super().__init__()
         self.png_map = 'image.jpeg'
         # верхний порог 90
-        self.spn = 0.0005
-        self.coeff = 2
+        self.z = 16
+        # self.spn = 0.0005
+        # self.coeff = 2
         self.color = 'pm2blm'
         self.color2 = 'pm2grm'
         # сначала долгота, потом широта
@@ -21,7 +31,7 @@ class MyWidget(QMainWindow):
         self.points = []
         self.type_of_map = 'sat'
         self.image = (50, 10, 450, 450)
-        self.img_centre = (self.image[0] + self.image[2]) // 2, (self.image[1] + self.image[3]) // 2
+        self.img_centre = self.image[0] + (self.image[2]) // 2, self.image[1] + (self.image[3]) // 2
         uic.loadUi('main_design.ui', self)  # Загружаем дизайн
         self.initUi()
 
@@ -62,7 +72,7 @@ class MyWidget(QMainWindow):
     def get_ll(self):
         self.start_progress_bar()
         # self.task.start()
-        ll, spn, address = get_ll_span(self.address.text())
+        ll, address = get_longlat(self.address.text())
         if ll is None:
             self.statusbar.showMessage('Адрес не найден')
             self.finish_progress_bar()
@@ -70,10 +80,8 @@ class MyWidget(QMainWindow):
 
         # показываем карту
         self.ll = list(map(float, ll.split(',')))
-        self.spn = max(list(map(float, spn.split(','))))
         self.points = [f'{self.ll[0]},{self.ll[1]},{self.color}']
         self.show_map(start=False)
-
         # выводим адрес
         try:
             message = address['formatted']
@@ -90,13 +98,13 @@ class MyWidget(QMainWindow):
     def show_map(self, start=True):
         if start:
             self.start_progress_bar()
-        open_image(f'{self.ll[0]},{self.ll[1]}', f'{self.spn},{self.spn}', self.png_map, mode=self.type_of_map,
-                   points=self.points)
+        open_image(f'{self.ll[0]},{self.ll[1]}', self.z, self.png_map, points=self.points, mode=self.type_of_map)
         pixmap = QPixmap(self.png_map)
         self.label.setPixmap(pixmap)
         self.finish_progress_bar()
 
     def movement(self, dir):
+        # TODO: переделать под z
         # 0 элемент - вправо, влево
         # 1 элемент - вверх, вниз
         self.ll[0] += dir[0] * self.spn * 2
@@ -104,18 +112,25 @@ class MyWidget(QMainWindow):
         self.show_map()
 
     def zoom(self, x):
-        if x == -1:
-            self.spn = min(self.spn * self.coeff, 90)
+        if x == 1:
+            new_z = min(self.z + x, self.Z_MAX)
         else:
-            self.spn = max(self.spn / self.coeff, 0.000000001)
-        self.show_map()
+            new_z = max(self.z + x, self.Z_MIN)
+        if new_z != self.z:
+            self.z = new_z
+            self.show_map()
+        # if self.Z_MIN < self.z < self.Z_MAX:
+        #     self.z += x
+        # if x == -1:
+        #     self.z = min(self.spn * self.coeff, 90)
+        # else:
+        #     self.spn = max(self.spn / self.coeff, 0.000000001)
 
-    def longlat_by_mousepos(self, x, y):
-        degrees_per_pixel_x = (self.spn / self.image[2])
-        degrees_per_pixel_y = (self.spn / self.image[3])
-        new_x, new_y = x - self.image[0] - self.img_centre[0], -(y - self.image[1] - self.img_centre[1])
-        ll_offset = [new_x * degrees_per_pixel_x, new_y * degrees_per_pixel_y]
-        return self.ll[0] + ll_offset[0], self.ll[1] + ll_offset[1]
+    def screen_to_geo(self, x, y):
+        delta_x, delta_y = x - self.img_centre[0], -(y - self.img_centre[1])
+        lx = self.ll[0] + delta_x * self.COORD_TO_GEO_X * math.pow(2, 15 - self.z)
+        ly = self.ll[1] + delta_y * self.COORD_TO_GEO_Y * math.cos(math.radians(self.ll[1])) * math.pow(2, 15 - self.z)
+        return lx, ly
 
     def mousePressEvent(self, event):
         left = event.button() == Qt.LeftButton
@@ -126,29 +141,30 @@ class MyWidget(QMainWindow):
                 1]:
                 self.start_progress_bar()
                 self.reset()
-                ll = self.longlat_by_mousepos(x, y)
+                ll = self.screen_to_geo(x, y)
                 address = geocode(f'{ll[0]},{ll[1]}')
+                self.points = [f'{ll[0]},{ll[1]},{self.color}']
+                message = ''
                 if left:
-                    self.points = [f'{ll[0]},{ll[1]},{self.color}']
                     if address:
-                        address = address['metaDataProperty']['GeocoderMetaData']['Address']['formatted']
+                        message = address['metaDataProperty']['GeocoderMetaData']['Address']['formatted']
                     else:
-                        address = 'Адрес объекта не найден'
-                    self.statusbar.showMessage(address)
+                        message = 'Адрес объекта не найден'
                 elif right:
                     if address:
                         address = address['metaDataProperty']['GeocoderMetaData']['Address']['formatted']
                     try:
-                        businesses = find_businesses(address, f'{ll[0]},{ll[1]}', '0.0015,0.0015')
+                        businesses = find_businesses(address, f'{ll[0]},{ll[1]}', self.BUSINESS_SEARCH_SPN)
                         closest = in_50_metres_range(ll, businesses)
                         if closest:
-                            self.statusbar.showMessage(closest[0])
+                            message = f'"{closest[0]}", организация обозначена серой меткой'
                             self.points = [f'{ll[0]},{ll[1]},{self.color}',
                                            f'{closest[1][0]},{closest[1][1]},{self.color2}']
                         else:
-                            self.statusbar.showMessage('Организация в диапазоне 50 метров не найдена')
-                    except Exception as e:
-                        self.statusbar.showMessage('Организация не найдена')
+                            message = 'Организация в диапазоне 50 метров не найдена'
+                    except Exception:
+                        message = 'Организация не найдена'
+                self.statusbar.showMessage(message)
             self.show_map(start=False)
 
     def keyPressEvent(self, event):
