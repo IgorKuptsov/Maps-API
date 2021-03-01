@@ -9,6 +9,7 @@ class MyWidget(QMainWindow):
     DEF_LL = (92.888506, 56.009354)
     LAT_STEP = 0.008  # Шаги при движении карты по широте и долготе
     LON_STEP = 0.02
+    MOVE_Z = 15
     COORD_TO_GEO_X = 0.0000428  # Пропорции пиксельных и географических координат.
     COORD_TO_GEO_Y = 0.0000428
     Z_MAX = 17
@@ -21,7 +22,7 @@ class MyWidget(QMainWindow):
         super().__init__()
         self.png_map = 'image.jpeg'
         # верхний порог 90
-        self.z = 16
+        self.z = 15
         # self.spn = 0.0005
         # self.coeff = 2
         self.color = 'pm2blm'
@@ -104,11 +105,19 @@ class MyWidget(QMainWindow):
         self.finish_progress_bar()
 
     def movement(self, dir):
-        # TODO: переделать под z
-        # 0 элемент - вправо, влево
-        # 1 элемент - вверх, вниз
-        self.ll[0] += dir[0] * self.spn * 2
-        self.ll[1] += dir[1] * self.spn * 2
+        # TODO: работает тольок для больших z
+        delta_z = self.MOVE_Z - self.z
+        if not delta_z:
+            self.ll[0] += dir[0] * self.LON_STEP
+            self.ll[1] += dir[1] * self.LAT_STEP
+        else:
+            symbol = 1 if delta_z > 0 else -1
+            multiplier = pow(abs(delta_z) * 2, symbol)
+            # print(multiplier, 'multiplier')
+            long_offset = self.LON_STEP * multiplier
+            lat_offset = self.LAT_STEP * multiplier
+            self.ll[0] += dir[0] * long_offset
+            self.ll[1] += dir[1] * lat_offset
         self.show_map()
 
     def zoom(self, x):
