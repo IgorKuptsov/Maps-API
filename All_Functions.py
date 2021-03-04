@@ -2,26 +2,28 @@ import math
 import sys
 from io import BytesIO
 import requests
-from PIL import Image
 
 
-def open_image(ll, spn, points=[], mode='map'):
+def open_image(ll, z, file_name, points=[], mode='map'):
     # рисует карту и точку на ней
     map_api_server = "http://static-maps.yandex.ru/1.x/"
     map_params = {
         "ll": ll,
-        # "spn": spn,
+        "z": z,
         "l": mode,
+        "size": '450,450'
     }
-    print(points)
+    # print(points)
     if points:
         map_params['pt'] = '~'.join(points)
     response = requests.get(map_api_server, params=map_params)
+    # print(response.url)
     if response:
-        Image.open(BytesIO(
-            response.content)).show()
+        map_file = file_name
+        with open(map_file, "wb") as file:
+            file.write(response.content)
     else:
-        print(response.status_code, response.reason)
+        print(response.status_code, response.reason, response.url)
 
 
 def geocode(address):
@@ -52,27 +54,18 @@ def get_coordinates(address):
     return float(toponym_longitude), float(toponym_lattitude)
 
 
-def get_ll_span(address):
+def get_longlat(address):
     toponym = geocode(address)
     if toponym is None:
-        return None, None
+        return None, None, None
     toponym_coordinates = toponym["Point"]["pos"]
     toponym_longitude, toponym_lattitude = toponym_coordinates.split(" ")
     ll = ','.join([toponym_longitude, toponym_lattitude])
-    
-    envelope = toponym['boundedBy']['Envelope']
-    left, bottom = map(float, envelope['lowerCorner'].split(' '))
-    right, top = map(float, envelope['upperCorner'].split(' '))
-
-    dx = abs(left - right) / 2
-    dy = abs(bottom - top) / 2
-
-    span = f'{dx},{dy}'
-
-    return ll, span
+    address = toponym['metaDataProperty']['GeocoderMetaData']['Address']
+    return ll, address
 
 
-def find_businesses(place, ll, spn, locale='ru_RU'):
+def find_businesses(place, ll, spn, locale='ru_RU', type='biz'):
     search_api_server = "https://search-maps.yandex.ru/v1/"
 
     search_params = {
@@ -81,9 +74,8 @@ def find_businesses(place, ll, spn, locale='ru_RU'):
         "lang": locale,
         "ll": ll,
         'spn': spn,
-        "type": "biz"
+        "type": type
     }
-
     response = requests.get(search_api_server, params=search_params)
 
     if not response:
@@ -95,10 +87,11 @@ def find_businesses(place, ll, spn, locale='ru_RU'):
     return features
 
 
-def find_business(place, ll, spn, locale='ru_RU'):
-    orgs = find_businesses(place, ll, spn, locale)
+def find_business(place, ll, spn, locale='ru_RU', type='biz'):
+    orgs = find_businesses(place, ll, spn, locale, type)
     if orgs:
         return orgs[0]
+
 
 def lonlat_distance(a, b):
     degree_to_meters_factor = 111 * 1000
@@ -116,3 +109,12 @@ def lonlat_distance(a, b):
     return distance
 
 
+def in_50_metres_range(ll, businesses):
+    for business in businesses:
+        business_ll = business['geometry']['coordinates']
+        if lonlat_distance(ll, business_ll) <= 50:
+            closest = business
+            return closest['properties']['name'], business_ll
+    return None
+
+# open_image("37.620070,55.753630", '0.005,0.005', "1", 'image.jpeg', mode="map")
