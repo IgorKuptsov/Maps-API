@@ -44,7 +44,7 @@ class MyWidget(QMainWindow):
 
         self.minus_btn.clicked.connect(lambda x: self.zoom(-1))
         self.plus_btn.clicked.connect(lambda x: self.zoom(1))
-        self.reset_btn.clicked.connect(self.reset)
+        self.reset_btn.clicked.connect(self.reset_button)
 
         self.hybrid.clicked.connect(lambda x: self.changing_type_of_map('skl'))
         self.scheme.clicked.connect(lambda x: self.changing_type_of_map('map'))
@@ -60,6 +60,12 @@ class MyWidget(QMainWindow):
     def finish_progress_bar(self):
         self.progressBar.setRange(0, 100)
         self.progressBar.setValue(100)
+
+    def reset_button(self):
+        self.points = []
+        self.address.setText('')
+        self.statusbar.showMessage('')
+        self.show_map()
 
     def reset(self):
         self.points = []

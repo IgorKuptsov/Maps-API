@@ -165,7 +165,7 @@
     </property>
     <property name="text">
      <string>Сброс поискового 
- адрес</string>
+ адресa</string>
     </property>
    </widget>
    <widget class="QCheckBox" name="index_chb">
