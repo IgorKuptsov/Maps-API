@@ -71,13 +71,24 @@ class MyWidget(QMainWindow):
         self.show_map()
 
     def get_ll(self):
+        if not self.address.text():
+            return -1
         self.start_progress_bar()
-        # self.task.start()
-        ll, address = get_longlat(self.address.text())
-        if ll is None:
+        if not any(filter(str.isalpha, self.address.text())):
+            self.statusbar.showMessage('Пожалуйста, попробуйте ввести адерс, содержащий буквы,' +
+                                       'и нажмите на кнопку "Найти адрес"')
+            self.finish_progress_bar()
+            return -1
+        try:
+            ll, address = get_longlat(self.address.text())
+            if ll is None:
+                self.statusbar.showMessage('Адрес не найден')
+                self.finish_progress_bar()
+                return -1
+        except Exception:
             self.statusbar.showMessage('Адрес не найден')
             self.finish_progress_bar()
-            return 0
+            return -1
 
         # показываем карту
         self.ll = list(map(float, ll.split(',')))
@@ -104,20 +115,23 @@ class MyWidget(QMainWindow):
         self.label.setPixmap(pixmap)
         self.finish_progress_bar()
 
-    def movement(self, dir):
+    def movement(self, dirr):
         # TODO: работает тольок для больших z
         delta_z = self.MOVE_Z - self.z
-        if not delta_z:
-            self.ll[0] += dir[0] * self.LON_STEP
-            self.ll[1] += dir[1] * self.LAT_STEP
-        else:
-            symbol = 1 if delta_z > 0 else -1
-            multiplier = pow(abs(delta_z) * 2, symbol)
-            # print(multiplier, 'multiplier')
-            long_offset = self.LON_STEP * multiplier
-            lat_offset = self.LAT_STEP * multiplier
-            self.ll[0] += dir[0] * long_offset
-            self.ll[1] += dir[1] * lat_offset
+        multiplier = pow(2, delta_z)
+        # print(multiplier, 'multiplier')
+        long_offset = self.LON_STEP * multiplier
+        lat_offset = self.LAT_STEP * multiplier
+        self.ll[0] += dirr[0] * long_offset
+        self.ll[1] += dirr[1] * lat_offset
+        if dirr[0] < 0:
+            self.ll[0] = max(-180, self.ll[0])
+        elif dirr[0] > 0:
+            self.ll[0] = min(180, self.ll[0])
+        if dirr[1] < 0:
+            self.ll[1] = max(-80, self.ll[1])
+        elif dirr[1] > 0:
+            self.ll[1] = min(80, self.ll[1])
         self.show_map()
 
     def zoom(self, x):
