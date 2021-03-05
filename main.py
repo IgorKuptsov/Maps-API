@@ -116,7 +116,11 @@ class MyWidget(QMainWindow):
     def show_map(self, start=True):
         if start:
             self.start_progress_bar()
-        open_image(f'{self.ll[0]},{self.ll[1]}', self.z, self.png_map, points=self.points, mode=self.type_of_map)
+        # 83.618125, -32.856152
+        img_opened = open_image(f'{self.ll[0]},{self.ll[1]}', self.z, self.png_map, points=self.points,
+                                mode=self.type_of_map)
+        self.z = self.z if not img_opened else img_opened
+        # open_image(f'{self.ll[0]},{self.ll[1]}', self.z, self.png_map, points=self.points, mode=self.type_of_map)
         pixmap = QPixmap(self.png_map)
         self.label.setPixmap(pixmap)
         self.finish_progress_bar()

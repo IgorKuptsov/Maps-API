@@ -23,7 +23,12 @@ def open_image(ll, z, file_name, points=[], mode='map'):
         with open(map_file, "wb") as file:
             file.write(response.content)
     else:
-        print(response.status_code, response.reason, response.url)
+        if not open_image(ll, 1, file_name, points, mode):
+            return 1
+        else:
+            print(response.status_code, response.reason, response.url)
+            return -1
+    return 0
 
 
 def geocode(address):
