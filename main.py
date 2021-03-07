@@ -2,7 +2,7 @@ from all_functions import *
 from PyQt5 import uic  # Импортируем uic
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QIcon
 
 
 class MyWidget(QMainWindow):
@@ -13,7 +13,7 @@ class MyWidget(QMainWindow):
     COORD_TO_GEO_X = 0.0000428  # Пропорции пиксельных и географических координат.
     COORD_TO_GEO_Y = 0.0000428
     Z_MAX = 17
-    Z_MIN = 2
+    Z_MIN = 1
     # spn = 50(метров) / degree_to_meters_factor
     # degree_to_meters_factor = 111 * 1000
     BUSINESS_SEARCH_SPN = '0.00045,0.00045'
@@ -34,6 +34,8 @@ class MyWidget(QMainWindow):
         self.image = (50, 10, 450, 450)
         self.img_centre = self.image[0] + (self.image[2]) // 2, self.image[1] + (self.image[3]) // 2
         uic.loadUi('main_design.ui', self)  # Загружаем дизайн
+        self.setWindowTitle('Maps-API')
+        self.setWindowIcon(QIcon('icon.png'))
         self.initUi()
 
     def initUi(self):
