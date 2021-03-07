@@ -70,7 +70,7 @@ class MyWidget(QMainWindow):
     def reset(self):
         self.points = []
         self.statusbar.showMessage('')
-        self.index_chb.setChecked(False)
+        # self.index_chb.setChecked(False)
 
     def changing_type_of_map(self, type):
         self.type_of_map = type
@@ -197,6 +197,12 @@ class MyWidget(QMainWindow):
                             message = 'Организация в диапазоне 50 метров не найдена'
                     except Exception:
                         message = 'Организация не найдена'
+                if self.index_chb.isChecked():
+                    try:
+                        index = address['metaDataProperty']['GeocoderMetaData']['Address']['postal_code']
+                        message += f', индеск {index}'
+                    except Exception:
+                        message += ', индекс не найден'
                 self.statusbar.showMessage(message)
             self.show_map(start=False)
 
